@@ -26,7 +26,7 @@ jobs:
 
     - name: Download OctoPi Image
       run: |
-        cd repository/src/image
+        cd repository/src
         wget -c --content-disposition --trust-server-names 'https://octopi.octoprint.org/latest' -O octopi.zip
         unzip octopi.zip
         rm octopi.zip
