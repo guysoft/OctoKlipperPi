@@ -45,13 +45,13 @@ jobs:
       id: copy
       run: |
         NOW="$(date +"%Y-%m-%d-%H%M")"
-        CURRENT_IMAGE_NAME="$(basename $(echo repository/src/workspace/*.img | head -n 1))"
+        CURRENT_IMAGE_NAME="$(basename $(echo ${{ github.workspace }}/src/workspace/*.img | head -n 1))"
         echo "${CURRENT_IMAGE_NAME}"
         IMAGE="${NOW}_${CURRENT_IMAGE_NAME}"
-        sudo chmod 777 -R "repository/src/workspace"
-        sudo chmod -R 666 "repository/src/workspace/${CURRENT_IMAGE_NAME}"
+        sudo chmod 777 -R "${{ github.workspace }}/src/workspace"
+        sudo chmod -R 666 "${{ github.workspace }}/src/workspace/${CURRENT_IMAGE_NAME}"
         sudo chmod 777 .
-        # mv -v "repository/src/workspace/${CURRENT_IMAGE_NAME}" "${IMAGE}"
+        # mv -v "${{ github.workspace }}/src/workspace/${CURRENT_IMAGE_NAME}" "${IMAGE}"
         mv output.img "${IMAGE}"
         IMAGE_BASENAME="$(basename $IMAGE .img)"
         IMAGE_BASENAME="$(basename $IMAGE_BASENAME .raw)"
