@@ -36,7 +36,7 @@ jobs:
     - name: "🏗 Run CustoPiZer"
       uses: OctoPrint/CustoPiZer@main
       with:
-        workspace: "${{ github.workspace }}/src/build"
+        workspace: "${{ github.workspace }}/src"
         scripts:  "${{ github.workspace }}/src/scripts"
         config:    "${{ github.workspace }}/src/config"
 
