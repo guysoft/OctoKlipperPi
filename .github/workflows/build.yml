@@ -37,9 +37,9 @@ jobs:
     - name: "🏗 Run CustoPiZer"
       uses: OctoPrint/CustoPiZer@main
       with:
-        workspace: "repository/src"
-        scripts:   "repository/src/scripts"
-        config:    "repository/src/config"
+        workspace: "./repository/src"
+        scripts:   "./repository/src/scripts"
+        config:    "./repository/src/config"
 
 
     - name: Copy output and add timestamp
