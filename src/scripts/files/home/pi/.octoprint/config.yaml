@@ -1,0 +1,20 @@
+webcam:
+  stream: /webcam/?action=stream
+  snapshot: http://127.0.0.1:8080/?action=snapshot
+  ffmpeg: /usr/bin/ffmpeg
+plugins:
+  cura:
+    cura_engine: /usr/local/bin/cura_engine
+  discovery:
+    publicPort: 80
+serial:
+  additionalPorts:
+  - /tmp/printer
+  baudrate: 250000
+  disconnectOnErrors: false
+  port: /tmp/printer
+server:
+  commands:
+    systemShutdownCommand: sudo shutdown -h now
+    systemRestartCommand: sudo shutdown -r now
+    serverRestartCommand: sudo service octoprint restart

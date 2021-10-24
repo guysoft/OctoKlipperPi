@@ -1,0 +1,66 @@
+name: Build Image
+
+on: 
+  push:
+    branches:
+      - '*'
+  schedule: 
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VARIANT: default
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install coreutils p7zip-full qemu-user-static
+
+    - name: "⬇ Checkout"
+      uses: actions/checkout@v2
+      with:
+        path: repository
+        submodules: true
+
+    - name: Download OctoPi Image
+      run: |
+        cd repository/src/image
+        wget -c --content-disposition --trust-server-names 'https://octopi.octoprint.org/latest' -O octopi.zip
+        unzip octopi.zip
+        rm octopi.zip
+        IMAGE=$(ls *.img | head -n 1)
+        mv $IMAGE input.img
+   
+    - name: "🏗 Run CustoPiZer"
+      uses: OctoPrint/CustoPiZer@main
+      with:
+        workspace: "${{ github.workspace }}/src/build"
+        scripts:  "${{ github.workspace }}/src/scripts"
+        config:    "${{ github.workspace }}/src/config"
+
+
+    - name: Copy output and add timestamp
+      id: copy
+      run: |
+        NOW="$(date +"%Y-%m-%d-%H%M")"
+        CURRENT_IMAGE_NAME="$(basename $(echo repository/src/workspace/*.img | head -n 1))"
+        echo "${CURRENT_IMAGE_NAME}"
+        IMAGE="${NOW}_${CURRENT_IMAGE_NAME}"
+        sudo chmod 777 -R "repository/src/workspace"
+        sudo chmod -R 666 "repository/src/workspace/${CURRENT_IMAGE_NAME}"
+        sudo chmod 777 .
+        # mv -v "repository/src/workspace/${CURRENT_IMAGE_NAME}" "${IMAGE}"
+        mv output.img "${IMAGE}"
+        IMAGE_BASENAME="$(basename $IMAGE .img)"
+        IMAGE_BASENAME="$(basename $IMAGE_BASENAME .raw)"
+
+        echo "::set-output name=image::$IMAGE_BASENAME"
+
+    # artifact upload will take care of zipping for us
+    - uses: actions/upload-artifact@v1
+      # if: github.event_name == 'schedule'
+      with:
+        name: ${{ steps.copy.outputs.image }}
+        path: ${{ steps.copy.outputs.image }}.img
