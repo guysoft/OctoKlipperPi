@@ -31,14 +31,15 @@ jobs:
         unzip octopi.zip
         rm octopi.zip
         IMAGE=$(ls *.img | head -n 1)
-        mv $IMAGE input.img
+        mv -v $IMAGE input.img
+        ls
    
     - name: "🏗 Run CustoPiZer"
       uses: OctoPrint/CustoPiZer@main
       with:
-        workspace: "${{ github.workspace }}/src"
-        scripts:  "${{ github.workspace }}/src/scripts"
-        config:    "${{ github.workspace }}/src/config"
+        workspace: "repository/src"
+        scripts:   "repository/src/scripts"
+        config:    "repository/src/config"
 
 
     - name: Copy output and add timestamp
