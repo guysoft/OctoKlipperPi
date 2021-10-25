@@ -10,11 +10,16 @@
 set -x
 set -e
 
+export LC_ALL=C
+
+
+source /common.sh
+install_cleanup_trap
+
 # Klipper repo
-[ -n "$KLIPPER_REPO_SHIP" ] || KLIPPER_REPO_SHIP=https://github.com/KevinOConnor/klipper.git
-[ -n "$KLIPPER_REPO_BUILD" ] || KLIPPER_REPO_BUILD=
-[ -n "$KLIPPER_REPO_BRANCH" ] || KLIPPER_REPO_BRANCH=master
-[ -n "$KLIPPER_REPO_DEPTH" ] || KLIPPER_REPO_DEPTH=1
+[ -n "$KLIPPER_REPO" ] || KLIPPER_REPO=https://github.com/KevinOConnor/klipper.git
+[ -n "$KLIPPER_BRANCH" ] || KLIPPER_BRANCH=master
+[ -n "$KLIPPER_DEPTH" ] || KLIPPER_DEPTH=1
 [ -n "$KLIPPER_INCLUDE_KLIPPER" ] || KLIPPER_INCLUDE_KLIPPER=yes
 BASE_USER=pi
 
@@ -22,98 +27,13 @@ BASE_USER=pi
 [ -n "$KLIPPER_INCLUDE_OCTOKLIPPER_PLUGIN" ] || KLIPPER_INCLUDE_OCTOKLIPPER_PLUGIN=yes
 [ -n "$KLIPPER_OCTOKLIPPER_URL" ] || KLIPPER_OCTOKLIPPER_URL="https://github.com/thelastWallE/OctoprintKlipperPlugin/archive/master.zip"
 
-export LC_ALL=C
-
-
-function gitclone(){
-  # call like this: gitclone OCTOPI_OCTOPRINT_REPO someDirectory -- this will do:
-  #
-  #   sudo -u "${BASE_USER}" git clone -b $OCTOPI_OCTOPRINT_REPO_BRANCH --depth $OCTOPI_OCTOPRINT_REPO_DEPTH $OCTOPI_OCTOPRINT_REPO_BUILD someDirectory
-  # 
-  # and if $OCTOPI_OCTOPRINT_REPO_BUILD != $OCTOPI_OCTOPRINT_REPO_SHIP also:
-  #
-  #   pushd someDirectory
-  #     sudo -u "${BASE_USER}" git remote set-url origin $OCTOPI_OCTOPRINT_REPO_SHIP
-  #   popd
-  # 
-  # if second parameter is not provided last URL segment of the BUILD repo URL
-  # minus the optional .git postfix will be used
-
-  repo_build_var=$1_BUILD
-  repo_ship_var=$1_SHIP
-  repo_branch_var=$1_BRANCH
-  repo_depth_var=$1_DEPTH
-  repo_recursive_var=$1_RECURSIVE
-
-  repo_depth=${!repo_depth_var}
-  if [ -n "$repo_depth" ]
-  then
-    depth=$repo_depth
-  else
-    if [ "$#" -gt 2 ]
-    then
-      depth=$3
-    fi
-  fi
-
-  build_repo=${!repo_build_var}
-  ship_repo=${!repo_ship_var}
-  branch=${!repo_branch_var}
-
-  if [ ! -n "$build_repo" ]
-  then
-    build_repo=$ship_repo
-  fi
-
-  clone_params=
-  
-  repo_recursive=${!repo_depth_var}
-  if [ -n "$repo_recursive" ]
-  then
-    clone_params="--recursive"
-  fi
-  
-  if [ -n "$branch" ]
-  then
-    clone_params="-b $branch"
-  fi
-
-  if [ -n "$depth" ]
-  then
-    clone_params="$clone_params --depth $depth"
-  fi
-  
-  repo_dir=$2
-  if [ ! -n "$repo_dir" ]
-  then
-    repo_dir=$(echo ${repo_dir} | sed 's%^.*/\([^/]*\)\(\.git\)?$%\1%g')
-  fi
-  
-  if [ "$repo_dir" == "" ]; then
-      sudo -u "${BASE_USER}" git clone $clone_params "$build_repo"
-  else
-      sudo -u "${BASE_USER}" git clone $clone_params "$build_repo" "$repo_dir"
-  fi
-
-  if [ "$build_repo" != "$ship_repo" ]
-  then
-    pushd "$repo_dir"
-      sudo -u "${BASE_USER}" git remote set-url origin "$ship_repo"
-    popd
-  fi
-}
-
-
-source /common.sh
-install_cleanup_trap
-
 unpack /files/home/pi /home/"${BASE_USER}" "${BASE_USER}"
 
 pushd /home/pi
   if [ "$KLIPPER_INCLUDE_KLIPPER" == "yes" ]
   then
     # Mostly taken from klipper/scripts/install-octopi.sh
-    gitclone KLIPPER_REPO klipper
+    git clone -b "$KLIPPER_BRANCH" --depth $KLIPPER_DEPTH "$KLIPPER_SHIP" klipper
     apt-get update --allow-releaseinfo-change
     apt-get -y --allow-downgrades --allow-remove-essential --allow-change-held-packages install virtualenv python-dev libffi-dev build-essential libncurses-dev libusb-dev avrdude gcc-avr binutils-avr avr-libc stm32flash dfu-util libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi libusb-1.0
 
