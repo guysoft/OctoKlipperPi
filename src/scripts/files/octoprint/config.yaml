@@ -1,0 +1,6 @@
+serial:
+  additionalPorts:
+  - /tmp/printer
+  baudrate: 250000
+  disconnectOnErrors: false
+  port: /tmp/printer
