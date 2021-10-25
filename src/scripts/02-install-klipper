@@ -21,13 +21,10 @@ install_cleanup_trap
 [ -n "$KLIPPER_BRANCH" ] || KLIPPER_BRANCH=master
 [ -n "$KLIPPER_DEPTH" ] || KLIPPER_DEPTH=1
 [ -n "$KLIPPER_INCLUDE_KLIPPER" ] || KLIPPER_INCLUDE_KLIPPER=yes
-BASE_USER=pi
 
 # OctoprintKlipper plugin
 [ -n "$KLIPPER_INCLUDE_OCTOKLIPPER_PLUGIN" ] || KLIPPER_INCLUDE_OCTOKLIPPER_PLUGIN=yes
 [ -n "$KLIPPER_OCTOKLIPPER_URL" ] || KLIPPER_OCTOKLIPPER_URL="https://github.com/thelastWallE/OctoprintKlipperPlugin/archive/master.zip"
-
-unpack /files/home/pi /home/"${BASE_USER}" "${BASE_USER}"
 
 pushd /home/pi
   if [ "$KLIPPER_INCLUDE_KLIPPER" == "yes" ]
@@ -41,21 +38,21 @@ pushd /home/pi
     sudo -u pi virtualenv -p python2 klipper/venv
     sudo -u pi klipper/venv/bin/pip install -r klipper/scripts/klippy-requirements.txt
 
-    cp "/home/pi/klipper/scripts/klipper-start.sh" /etc/init.d/klipper
+    cp klipper/scripts/klipper-start.sh /etc/init.d/klipper
     update-rc.d klipper defaults
 
+    cp -a /files/klipper/printer.cfg .
+    chown pi:pi printer.cfg
+    chmod 644 printer.cfg
 
-    DEFAULTS_FILE=/etc/default/klipper
-    cat > $DEFAULTS_FILE <<EOF
-# Configuration for /etc/init.d/klipper
-KLIPPY_USER=pi
-KLIPPY_EXEC=/home/pi/klipper/venv/bin/python
-KLIPPY_ARGS="/home/pi/klipper/klippy/klippy.py /home/pi/printer.cfg -l /tmp/klippy.log"
-EOF
+    cp /files/klipper/default /etc/default/klipper
+    chmod 644 /etc/default/klipper
   fi
   
   if [ "$KLIPPER_INCLUDE_OCTOKLIPPER_PLUGIN" == "yes" ]; then
     sudo -u pi /home/pi/oprint/bin/pip install "${KLIPPER_OCTOKLIPPER_URL}"
   fi
+
+  sudo -u pi /home/pi/oprint/bin/python /files/merge-settings.py /files/octoprint/config.yaml /home/pi/.octoprint/config.yaml
 popd
 
