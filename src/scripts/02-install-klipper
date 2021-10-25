@@ -33,14 +33,14 @@ pushd /home/pi
   if [ "$KLIPPER_INCLUDE_KLIPPER" == "yes" ]
   then
     # Mostly taken from klipper/scripts/install-octopi.sh
-    git clone -b "$KLIPPER_BRANCH" --depth $KLIPPER_DEPTH "$KLIPPER_SHIP" klipper
+    sudo -u pi git clone -b "$KLIPPER_BRANCH" --depth $KLIPPER_DEPTH "$KLIPPER_SHIP" klipper
     apt-get update --allow-releaseinfo-change
     apt-get -y --allow-downgrades --allow-remove-essential --allow-change-held-packages install virtualenv python-dev libffi-dev build-essential libncurses-dev libusb-dev avrdude gcc-avr binutils-avr avr-libc stm32flash dfu-util libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi libusb-1.0
 
 
     PYTHONDIR="/home/pi/klippy-env"
-    virtualenv -p python2 ${PYTHONDIR}
-    ${PYTHONDIR}/bin/pip install -r /home/pi/klipper/scripts/klippy-requirements.txt
+    sudo -u pi virtualenv -p python2 ${PYTHONDIR}
+    sudo -u pi ${PYTHONDIR}/bin/pip install -r /home/pi/klipper/scripts/klippy-requirements.txt
 
     cp "/home/pi/klipper/scripts/klipper-start.sh" /etc/init.d/klipper
     update-rc.d klipper defaults
