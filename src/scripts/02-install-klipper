@@ -38,9 +38,8 @@ pushd /home/pi
     apt-get -y --allow-downgrades --allow-remove-essential --allow-change-held-packages install virtualenv python-dev libffi-dev build-essential libncurses-dev libusb-dev avrdude gcc-avr binutils-avr avr-libc stm32flash dfu-util libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi libusb-1.0
 
 
-    PYTHONDIR="/home/pi/klippy-env"
-    sudo -u pi virtualenv -p python2 ${PYTHONDIR}
-    sudo -u pi ${PYTHONDIR}/bin/pip install -r /home/pi/klipper/scripts/klippy-requirements.txt
+    sudo -u pi virtualenv -p python2 klipper/venv
+    sudo -u pi klipper/venv/bin/pip install -r klipper/scripts/klippy-requirements.txt
 
     cp "/home/pi/klipper/scripts/klipper-start.sh" /etc/init.d/klipper
     update-rc.d klipper defaults
@@ -50,7 +49,7 @@ pushd /home/pi
     cat > $DEFAULTS_FILE <<EOF
 # Configuration for /etc/init.d/klipper
 KLIPPY_USER=pi
-KLIPPY_EXEC=${PYTHONDIR}/bin/python
+KLIPPY_EXEC=/home/pi/klipper/venv/bin/python
 KLIPPY_ARGS="/home/pi/klipper/klippy/klippy.py /home/pi/printer.cfg -l /tmp/klippy.log"
 EOF
   fi
