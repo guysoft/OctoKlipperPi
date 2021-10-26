@@ -4,63 +4,187 @@ on:
   push:
     branches:
       - '*'
-  schedule: 
-    - cron: '0 0 * * *'
+  repository_dispatch:
+    types: [octopi_release]
+  workflow_dispatch:
+    inputs:
+      octopi_version:
+        description: "OctoPi version (leave empty to use latest stable release)"
+        required: false
+        default: ''
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      VARIANT: default
     steps:
-    - name: Install Dependencies
-      run: |
-        sudo apt update
-        sudo apt install coreutils p7zip-full qemu-user-static
-
     - name: "⬇ Checkout"
       uses: actions/checkout@v2
-      with:
-        submodules: true
 
-    - name: Download OctoPi Image
+    - name: "🔎 Determine OctoPi version"
+      uses: actions/github-script@v4
+      with:
+        script: |
+          let release = null;
+
+          let version = '';
+          if (context.eventName === "respository_dispatch" && context.action === "octopi_release") {
+            version = context.payload.client_payload.version;
+            console.log(`Version from repository dispatch: ${version}`);
+          } else if (context.eventName === "workflow_dispatch") {
+            version = context.payload.inputs.octopi_version;
+            console.log(`Version from workflow dispatch: ${version}`);
+          }
+
+          if (version) {
+            console.log(`Fetching release of ${version}`);
+
+            const query = `query {
+              repository(owner: "guysoft", name: "Octopi") {
+                release(tagName:"${version}") {
+                  tagName
+                  releaseAssets(first:5) {
+                    nodes {
+                      name
+                      downloadUrl
+                    }
+                  }
+                }
+              }
+            }`;
+
+            const result = await github.graphql(query);
+            console.log({result});
+
+            release = result.repository.release;
+
+          } else {
+            console.log("Fetching latest release");
+
+            const query = `query {
+              repository(owner:"guysoft", name:"OctoPi") {
+                latestRelease {
+                  tagName
+                  releaseAssets(first:5) {
+                    nodes {
+                      name
+                      downloadUrl
+                    }
+                  }
+                }
+              }
+            }`;
+
+            const result = await github.graphql(query);
+            console.log({result});
+
+            release = result.repository.latestRelease;
+          }
+
+          if (!release || !release.tagName || !release.releaseAssets || !release.releaseAssets.nodes) core.setFailed("Could not find OctoPi release");
+
+          const octopiVersion = release.tagName;
+
+          let octopiUrl = null;
+          for (const asset of release.releaseAssets.nodes) {
+            if (asset.name.startsWith("octopi-") && asset.name.endsWith(".zip")) {
+              octopiUrl = asset.downloadUrl;
+              break;
+            }
+          }
+
+          if (!octopiUrl) core.setFailed("Could not find OctoPi download URL");
+
+          console.log(`OctoPi version: ${octopiVersion}`)
+          console.log(`OctoPi download URL: ${octopiUrl}`)
+
+          core.exportVariable("OCTOPI_VERSION", octopiVersion)
+          core.exportVariable("OCTOPI_URL", octopiUrl)
+
+    - name: "⬇ Download OctoPi"
+      id: octopi_download
       run: |
-        cd ${{ github.workspace }}/src
-        wget -c --content-disposition --trust-server-names 'https://octopi.octoprint.org/latest' -O octopi.zip
+        mkdir build
+        cd build
+        wget ${{ env.OCTOPI_URL }} -O octopi.zip
+        
         unzip octopi.zip
         rm octopi.zip
+
         IMAGE=$(ls *.img | head -n 1)
-        mv -v $IMAGE input.img
-        ls
-   
+        mv $IMAGE input.img
+
     - name: "🏗 Run CustoPiZer"
       uses: OctoPrint/CustoPiZer@main
       with:
-        workspace: "${{ github.workspace }}/src"
+        workspace: "${{ github.workspace }}/build"
         scripts:  "${{ github.workspace }}/src/scripts"
         config:    "${{ github.workspace }}/src/config"
 
-
-    - name: Copy output and add timestamp
-      id: copy
+    - name: "✏ Rename image"
       run: |
-        NOW="$(date +"%Y-%m-%d-%H%M")"
-        CURRENT_IMAGE_NAME="$(basename $(echo ${{ github.workspace }}/src/workspace/*.img | head -n 1))"
-        echo "${CURRENT_IMAGE_NAME}"
-        IMAGE="${NOW}_${CURRENT_IMAGE_NAME}"
-        sudo chmod 777 -R "${{ github.workspace }}/src/workspace"
-        sudo chmod -R 666 "${{ github.workspace }}/src/workspace/${CURRENT_IMAGE_NAME}"
-        sudo chmod 777 .
-        # mv -v "${{ github.workspace }}/src/workspace/${CURRENT_IMAGE_NAME}" "${IMAGE}"
-        mv output.img "${IMAGE}"
-        IMAGE_BASENAME="$(basename $IMAGE .img)"
-        IMAGE_BASENAME="$(basename $IMAGE_BASENAME .raw)"
+        OCTOPI_VERSION="${{ env.OCTOPI_VERSION }}"
+        NOW="$(date +"%Y%m%d%H%M%S")"
+        
+        IMAGE="octopi-$OCTOPI_VERSION-klipper-$NOW"
+        echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+        echo "NOW=$NOW" >> $GITHUB_ENV
 
-        echo "::set-output name=image::$IMAGE_BASENAME"
+        cd build
+        mv output.img $IMAGE.img
 
-    # artifact upload will take care of zipping for us
-    - uses: actions/upload-artifact@v1
-      # if: github.event_name == 'schedule'
+    - uses: actions/upload-artifact@v2
       with:
-        name: ${{ steps.copy.outputs.image }}
-        path: ${{ steps.copy.outputs.image }}.img
+        name: ${{ env.IMAGE }}
+        path: build/${{ env.IMAGE }}.img
+
+    - name: "📝 Prepare release"
+      if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+      run: |
+        RELEASE_NAME="OctoPi ${{ env.OCTOPI_VERSION }} with latest Klipper"
+        echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+
+        RELEASE_TAG="${{ env.OCTOPI_VERSION }}.klipper.${{ env.NOW }}"
+        echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+
+        RELEASE_BODY=""
+        (git rev-parse $RELEASE_TAG >/dev/null 2>&1) || RELEASE_BODY="Created with [CustoPiZer](https://github.com/OctoPrint/CustoPiZer)"
+
+        echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
+
+    - name: "📦 Package the image"
+      if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+      id: package-image
+      uses: OctoPrint/actions/package-rpi-image@main
+      with:
+        image_path: "build/${{ env.IMAGE }}.img"
+
+    - name: "🆕 Generate rpi-imager.json snippet"
+      if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+      uses: OctoPrint/actions/rpi-imager-snippet@main
+      with:
+        name: "${{ env.RELEASE_NAME }}"
+        description: "A Raspberry Pi distribution for 3d printers. Ships OctoPrint & Klipper out-of-the-box."
+        icon: "https://octopi.octoprint.org/rpi-imager.png"
+        url: "https://github.com/guysoft/OctoPi-Klipper-CustoPiZer/releases/download/${{ env.RELEASE_TAG }}/${{ steps.package-image.outputs.zip_name }}"
+        output: "build/rpi-imager.json"
+        image_sha256: ${{ steps.package-image.outputs.image_sha256 }}
+        image_size: ${{ steps.package-image.outputs.image_size }}
+        zip_sha256: ${{ steps.package-image.outputs.zip_sha256 }}
+        zip_size: ${{ steps.package-image.outputs.zip_size }}
+
+    - name: "🔖 Create release & attach assets"
+      if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "${{ env.RELEASE_NAME }}"
+        tag_name: "${{ env.RELEASE_TAG }}"
+        body: "${{ env.RELEASE_BODY }}"
+        prerelease: ${{ contains(env.OCTOPI_VERSION, 'rc') }}
+        fail_on_unmatched_files: true
+        files: |
+          build/${{ steps.package-image.outputs.zip_name }}
+          build/${{ steps.package-image.outputs.zip_name }}.md5
+          build/${{ steps.package-image.outputs.zip_name }}.sha256
+          build/rpi-imager.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
