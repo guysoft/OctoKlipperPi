@@ -132,11 +132,6 @@ jobs:
         cd build
         mv output.img $IMAGE.img
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: ${{ env.IMAGE }}
-        path: build/${{ env.IMAGE }}.img
-
     - name: "📝 Prepare release"
       if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
       run: |
@@ -188,3 +183,11 @@ jobs:
           build/rpi-imager.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: "⬆ Upload build artifact"
+      uses: actions/upload-artifact@v2
+      if: github.event_name == 'push'
+      with:
+        name: ${{ env.IMAGE }}
+        path: build/${{ env.IMAGE }}.img
+
