@@ -1,4 +1,5 @@
-# OctoPi-Klipper using CustoPiZer
+# OctoPi-Klipper
+![image](https://raw.githubusercontent.com/guysoft/OctoPi-Klipper/main/media/OctoPi-Klipper.png)
 
 *The latest OctoPi release with the latest Klipper already included*
 
