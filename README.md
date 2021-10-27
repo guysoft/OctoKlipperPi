@@ -14,6 +14,15 @@ A simple update script is run via [CustoPiZer](https://github.com/OctoPrint/Cust
 Sure, check out [CustoPiZer's README](https://github.com/OctoPrint/CustoPiZer) for 
 instructions on how to set up your own image build for modified but clean OctoPi images!
 
+
+# Features
+
+* [OctoPrint](http://octoprint.org) host software for 3d printers out of the box. Settings pre-set for klipper.
+* [Klipper](https://github.com/KevinOConnor/klipper/) host firmware for 3d printers out of the box
+* [OctoKlipper plugin](https://plugins.octoprint.org/plugins/klipper/) to get OctoPrint to work better with Klipper.
+* [Raspbian](http://www.raspbian.org/) tweaked for maximum performance for printing out of the box
+* [mjpg-streamer with RaspiCam support](https://github.com/jacksonliam/mjpg-streamer) for live viewing of prints and timelapse video creation.
+
 ## I have a problem, where's the issue tracker for this project?
 
 Nowhere, because this really is just a build automation.
