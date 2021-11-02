@@ -24,8 +24,7 @@ instructions on how to set up your own image build for modified but clean OctoPi
 * [Raspbian](http://www.raspbian.org/) tweaked for maximum performance for printing out of the box
 * [mjpg-streamer with RaspiCam support](https://github.com/jacksonliam/mjpg-streamer) for live viewing of prints and timelapse video creation.
 
-## I have a problem, where's the issue tracker for this project?
-
-Nowhere, because this really is just a build automation.
+## I have a problem where can I get help?
 
 If you need support with OctoPrint or OctoPi, [please get in touch on the OctoPrint Community Forums](https://community.octoprint.org).
+If you have a bug specific to OctoPi-Klipper use the issue tracker
