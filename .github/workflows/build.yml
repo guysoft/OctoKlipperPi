@@ -191,3 +191,13 @@ jobs:
         name: ${{ env.IMAGE }}
         path: build/${{ env.IMAGE }}.img
 
+    - name: "⬆ Publish Files To rpi-imager"
+      id: upload
+      uses: Creepios/sftp-action@v1.0.3
+      with:
+        host: ${{ secrets.FTP_HOST }}
+        port: 22
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        localPath: 'build/rpi-imager.json'
+        remotePath: '/rpi-imager/rpi-imager-octopi-klipper.json'
