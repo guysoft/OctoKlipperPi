@@ -159,7 +159,7 @@ jobs:
       with:
         name: "${{ env.RELEASE_NAME }}"
         description: "A Raspberry Pi distribution for 3d printers. Ships OctoPrint & Klipper out-of-the-box."
-        icon: "https://octopi.octoprint.org/rpi-imager.png"
+        icon: "https://github.com/guysoft/OctoPi-Klipper/raw/main/media/rpi-imager-OctoPi-Klipper.png"
         url: "https://github.com/guysoft/OctoPi-Klipper-CustoPiZer/releases/download/${{ env.RELEASE_TAG }}/${{ steps.package-image.outputs.zip_name }}"
         output: "build/rpi-imager.json"
         image_sha256: ${{ steps.package-image.outputs.image_sha256 }}
