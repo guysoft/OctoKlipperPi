@@ -190,7 +190,15 @@ jobs:
       with:
         name: ${{ env.IMAGE }}
         path: build/${{ env.IMAGE }}.img
-
+    - name: "🔖 Generate rpi-imager json"
+      uses: OctoPrint/actions/rpi-imager-json@main
+      with:
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        owner: guysoft
+        repo: OctoPi-Klipper
+        output: ./files/rpi-imager.json
+        nameStable: "OctoPi-Klipper (stable)"
+        namePrerelease: "OctoPi-Klipper (prerelease)"
     - name: "⬆ Publish Files To rpi-imager"
       if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
       id: upload
@@ -200,5 +208,5 @@ jobs:
         port: 22
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        localPath: 'build/rpi-imager.json'
+        localPath: './files/rpi-imager.json'
         remotePath: '/rpi-imager/rpi-imager-octopi-klipper.json'
