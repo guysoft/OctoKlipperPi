@@ -196,7 +196,7 @@ jobs:
         token: "${{ secrets.GITHUB_TOKEN }}"
         owner: guysoft
         repo: OctoPi-Klipper
-        output: ./files/rpi-imager.json
+        output: ./rpi-imager.json
         nameStable: "OctoPi-Klipper (stable)"
         namePrerelease: "OctoPi-Klipper (prerelease)"
     - name: "⬆ Publish Files To rpi-imager"
@@ -208,5 +208,5 @@ jobs:
         port: 22
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        localPath: './files/rpi-imager.json'
+        localPath: './rpi-imager.json'
         remotePath: '/rpi-imager/rpi-imager-octopi-klipper.json'
