@@ -1,5 +1,8 @@
-# OctoPi-Klipper
-![image](https://raw.githubusercontent.com/guysoft/OctoPi-Klipper/main/media/OctoPi-Klipper.png)
+# OctoKlipperPi
+
+![image](https://raw.githubusercontent.com/guysoft/OctoKlipperPi
+/main/media/OctoKlipperPi
+.png)
 
 *The latest OctoPi release with the latest Klipper already included*
 
@@ -9,9 +12,11 @@ This repository contains the source script to generate the distribution out of a
 
 # Where to get it?
 
-Official mirror is [here](https://github.com/guysoft/OctoPi-Klipper/releases)
+Official mirror is [here](https://github.com/guysoft/OctoKlipperPi
+/releases)
 
-Nightly builds are available [here](https://github.com/guysoft/OctoPi-Klipper/actions/workflows/build.yml)
+Nightly builds are available [here](https://github.com/guysoft/OctoKlipperPi
+/actions/workflows/build.yml)
 
 ## How to use it?
 
@@ -22,11 +27,13 @@ Nightly builds are available [here](https://github.com/guysoft/OctoPi-Klipper/ac
 
     1. Change the password via "Change User Password"
     2. Optionally: Change the configured timezone via "Localization Options" > "Timezone".
-    3. Optionally: Change the hostname via "Network Options" > "Hostname". Your OctoPi-Klipper instance will then no longer be reachable under ``octopi.local`` but rather the hostname you chose postfixed with ``.local``, so keep that in mind.
+    3. Optionally: Change the hostname via "Network Options" > "Hostname". Your OctoKlipperPi
+ instance will then no longer be reachable under ``octopi.local`` but rather the hostname you chose postfixed with ``.local``, so keep that in mind.
   
    You can navigate in the menus using the arrow keys and Enter. To switch to selecting the buttons at the bottom use Tab.
    
-   You do not need to expand the filesystem, current versions of OctoPi-Klipper do this automatically.
+   You do not need to expand the filesystem, current versions of OctoKlipperPi
+ do this automatically.
 
 OctoPrint is located at `http://octopi.local <http://octopi.local>`_ and also at `https://octopi.local <https://octopi.local>`_. Since the SSL certificate is self signed (and generated upon first boot), you will get a certificate warning at the latter location, please ignore it.
 
@@ -48,7 +55,8 @@ If a USB webcam or the Raspberry Pi camera is detected, MJPG-streamer will be st
 ## What is this repo doing?
 
 This repository automatically adds klipper installation on the latest OctoPi image
-and provides the resulting image ready to flash. Checkout the [releases](https://github.com/guysoft/OctoPi-Klipper-CustoPiZer/releases).
+and provides the resulting image ready to flash. Checkout the [releases](https://github.com/guysoft/OctoKlipperPi
+-CustoPiZer/releases).
 
 ## How does this work?
 
@@ -62,4 +70,5 @@ instructions on how to set up your own image build for modified but clean OctoPi
 ## I have a problem where can I get help?
 
 If you need support with OctoPrint or OctoPi, [please get in touch on the OctoPrint Community Forums](https://community.octoprint.org).
-If you have a bug specific to OctoPi-Klipper use the issue tracker
+If you have a bug specific to OctoKlipperPi
+ use the issue tracker
