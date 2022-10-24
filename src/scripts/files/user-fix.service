@@ -1,0 +1,17 @@
+[Unit]
+Description=Ensure that user name changes are applied as needed
+
+DefaultDependencies=no
+
+Before=network-pre.target
+Wants=network-pre.target
+
+After=local-fs.target
+Wants=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/root/bin/user-fix
+
+[Install]
+WantedBy=multi-user.target
