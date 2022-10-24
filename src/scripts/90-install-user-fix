@@ -1,0 +1,17 @@
+set -x
+set -e
+
+export LC_ALL=C
+
+source /common.sh
+install_cleanup_trap
+
+# we need to install virtualenv-tools3, so let's get pip and that
+apt install -y python3-pip
+sudo -u pi pip3 install --user virtualenv-tools3
+
+cp /files/user-fix /root/bin/user-fix
+chmod +x /root/bin/user-fix
+
+cp /files/user-fix.service /etc/systemd/system/user-fix.service
+systemctl enable user-fix.service
