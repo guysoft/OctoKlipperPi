@@ -1,4 +1,4 @@
 # Configuration for /etc/init.d/klipper
 KLIPPY_USER=$(getent passwd "1000" | cut -d: -f1)
 KLIPPY_EXEC="/home/${KLIPPY_USER}/klippy-env/bin/python"
-KLIPPY_ARGS="/home/${KLIPPY_USER}/klipper/klippy/klippy.py /home/pi/printer.cfg -l /tmp/klippy.log"
+KLIPPY_ARGS="/home/${KLIPPY_USER}/klipper/klippy/klippy.py "/home/${KLIPPY_USER}/printer.cfg" -l /tmp/klippy.log"
