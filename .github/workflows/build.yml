@@ -209,4 +209,4 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         localPath: './rpi-imager.json'
-        remotePath: '/rpi-imager/rpi-imager-octopi-klipper.json'
+        remotePath: '/rpi-imager/rpi-imager-octoklipperpi.json'
