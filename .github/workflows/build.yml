@@ -1,6 +1,6 @@
 name: Build Image
 
-on: 
+on:
   push:
     branches:
       - '*'
@@ -18,26 +18,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: "⬇ Checkout"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: "🔎 Determine OctoPi version"
-      uses: actions/github-script@v4
+      uses: actions/github-script@v7
       with:
         script: |
           let release = null;
-
           let version = '';
-          if (context.eventName === "respository_dispatch" && context.action === "octopi_release") {
+          if (context.eventName === "repository_dispatch" && context.action === "octopi_release") {
             version = context.payload.client_payload.version;
             console.log(`Version from repository dispatch: ${version}`);
           } else if (context.eventName === "workflow_dispatch") {
             version = context.payload.inputs.octopi_version;
             console.log(`Version from workflow dispatch: ${version}`);
           }
-
           if (version) {
             console.log(`Fetching release of ${version}`);
-
             const query = `query {
               repository(owner: "guysoft", name: "Octopi") {
                 release(tagName:"${version}") {
@@ -51,15 +48,11 @@ jobs:
                 }
               }
             }`;
-
             const result = await github.graphql(query);
             console.log({result});
-
             release = result.repository.release;
-
           } else {
             console.log("Fetching latest release");
-
             const query = `query {
               repository(owner:"guysoft", name:"OctoPi") {
                 latestRelease {
@@ -73,17 +66,12 @@ jobs:
                 }
               }
             }`;
-
             const result = await github.graphql(query);
             console.log({result});
-
             release = result.repository.latestRelease;
           }
-
           if (!release || !release.tagName || !release.releaseAssets || !release.releaseAssets.nodes) core.setFailed("Could not find OctoPi release");
-
           const octopiVersion = release.tagName;
-
           let octopiUrl = null;
           for (const asset of release.releaseAssets.nodes) {
             if (asset.name.startsWith("octopi-") && asset.name.endsWith(".zip")) {
@@ -91,12 +79,9 @@ jobs:
               break;
             }
           }
-
           if (!octopiUrl) core.setFailed("Could not find OctoPi download URL");
-
           console.log(`OctoPi version: ${octopiVersion}`)
           console.log(`OctoPi download URL: ${octopiUrl}`)
-
           core.exportVariable("OCTOPI_VERSION", octopiVersion)
           core.exportVariable("OCTOPI_URL", octopiUrl)
 
@@ -109,7 +94,6 @@ jobs:
         
         unzip octopi.zip
         rm octopi.zip
-
         IMAGE=$(ls *.img | head -n 1)
         mv $IMAGE input.img
 
@@ -118,7 +102,7 @@ jobs:
       with:
         workspace: "${{ github.workspace }}/build"
         scripts:  "${{ github.workspace }}/src/scripts"
-        config:    "${{ github.workspace }}/src/config"
+        config:   "${{ github.workspace }}/src/config"
 
     - name: "✏ Rename image"
       run: |
@@ -128,7 +112,6 @@ jobs:
         IMAGE="octopi-$OCTOPI_VERSION-klipper-$NOW"
         echo "IMAGE=$IMAGE" >> $GITHUB_ENV
         echo "NOW=$NOW" >> $GITHUB_ENV
-
         cd build
         mv output.img $IMAGE.img
 
@@ -137,13 +120,10 @@ jobs:
       run: |
         RELEASE_NAME="OctoPi ${{ env.OCTOPI_VERSION }} with latest Klipper"
         echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
-
         RELEASE_TAG="${{ env.OCTOPI_VERSION }}.klipper.${{ env.NOW }}"
         echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
-
         RELEASE_BODY=""
         (git rev-parse $RELEASE_TAG >/dev/null 2>&1) || RELEASE_BODY="Created with [CustoPiZer](https://github.com/OctoPrint/CustoPiZer)"
-
         echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
 
     - name: "📦 Package the image"
@@ -169,7 +149,7 @@ jobs:
 
     - name: "🔖 Create release & attach assets"
       if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: "${{ env.RELEASE_NAME }}"
         tag_name: "${{ env.RELEASE_TAG }}"
@@ -185,11 +165,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "⬆ Upload build artifact"
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: github.event_name == 'push'
       with:
         name: ${{ env.IMAGE }}
         path: build/${{ env.IMAGE }}.img
+
     - name: "🔖 Generate rpi-imager json"
       uses: OctoPrint/actions/rpi-imager-json@main
       with:
@@ -199,14 +180,16 @@ jobs:
         output: ./rpi-imager.json
         nameStable: "OctoPi-Klipper (stable)"
         namePrerelease: "OctoPi-Klipper (prerelease)"
+    - name: "Rename file for upload"
+      run: cp ./rpi-imager.json ./rpi-imager-octoklipperpi.json
     - name: "⬆ Publish Files To rpi-imager"
       if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
       id: upload
-      uses: Creepios/sftp-action@v1.0.3
+      uses: wangyucode/sftp-upload-action@v2.0.2
       with:
         host: ${{ secrets.FTP_HOST }}
         port: 22
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        localPath: './rpi-imager.json'
-        remotePath: '/rpi-imager/rpi-imager-octoklipperpi.json'
+        localDir: './rpi-imager-octoklipperpi.json'
+        remoteDir: '/rpi-imager'
