@@ -74,9 +74,12 @@ jobs:
           const octopiVersion = release.tagName;
           let octopiUrl = null;
           for (const asset of release.releaseAssets.nodes) {
-            if (asset.name.startsWith("octopi-") && asset.name.endsWith(".zip")) {
-              octopiUrl = asset.downloadUrl;
-              break;
+            if (asset.name.startsWith("octopi-") &&
+                asset.name.endsWith(".zip") &&
+                !asset.name.includes("arm64") &&
+                (asset.name.includes("armhf") || !asset.name.includes("arm"))) {
+             octopiUrl = asset.downloadUrl;
+             break;
             }
           }
           if (!octopiUrl) core.setFailed("Could not find OctoPi download URL");
