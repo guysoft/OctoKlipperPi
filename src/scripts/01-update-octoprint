@@ -6,4 +6,7 @@ export LC_ALL=C
 source /common.sh
 install_cleanup_trap
 
-sudo -u pi /home/pi/oprint/bin/pip install -U OctoPrint
+OCTOPI_OPT_FOLDER=/opt/octopi
+OCTOPI_OCTOPRINT_FOLDER="${OCTOPI_OPT_FOLDER}"/oprint
+PIP="${OCTOPI_OCTOPRINT_FOLDER}"/bin/pip
+sudo -u pi "${PIP}" install -U OctoPrint

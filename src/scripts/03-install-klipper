@@ -27,7 +27,13 @@ install_cleanup_trap
 # Install Klipper
 apt-get -y --allow-downgrades --allow-remove-essential --allow-change-held-packages install virtualenv python3 python3-dev libffi-dev build-essential libncurses-dev libusb-dev avrdude gcc-avr binutils-avr avr-libc stm32flash dfu-util libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi libusb-1.0
 
-pushd /home/pi
+OCTOPI_OPT_FOLDER=/opt/octopi
+OCTOPI_OCTOPRINT_FOLDER="${OCTOPI_OPT_FOLDER}"/oprint
+PIP="${OCTOPI_OCTOPRINT_FOLDER}"/bin/pip
+chown pi:pi "${OCTOPI_OPT_FOLDER}"
+chmod g+s /opt/octopi "${OCTOPI_OPT_FOLDER}"
+chmod u+s /opt/octopi "${OCTOPI_OPT_FOLDER}"
+pushd "${OCTOPI_OPT_FOLDER}"
   # Mostly taken from klipper/scripts/install-octopi.sh
   sudo -u pi git clone -b "$KLIPPER_BRANCH" --depth $KLIPPER_DEPTH "$KLIPPER_REPO" klipper
   sudo -u pi virtualenv -p python3 klippy-env
@@ -46,7 +52,7 @@ cp /files/klipper/default /etc/default/klipper
 chmod 644 /etc/default/klipper
 
 # Install plugin
-sudo -u pi /home/pi/oprint/bin/pip install "${KLIPPER_OCTOKLIPPER_URL}"
+sudo -u pi "${PIP}" install "${KLIPPER_OCTOKLIPPER_URL}"
 
 # Merge config
-sudo -u pi /home/pi/oprint/bin/python /files/merge-settings.py /files/octoprint/config.yaml /home/pi/.octoprint/config.yaml
+sudo -u pi "${OCTOPI_OCTOPRINT_FOLDER}"/bin/python /files/merge-settings.py /files/octoprint/config.yaml /home/pi/.octoprint/config.yaml
