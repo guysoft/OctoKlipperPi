@@ -188,11 +188,13 @@ jobs:
     - name: "⬆ Publish Files To rpi-imager"
       if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
       id: upload
-      uses: wangyucode/sftp-upload-action@v2.0.2
+      uses: Dylan700/sftp-upload-action@latest
       with:
-        host: ${{ secrets.FTP_HOST }}
-        port: 22
+        server: ${{ secrets.FTP_HOST }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        localDir: './rpi-imager-octoklipperpi.json'
-        remoteDir: '/rpi-imager'
+        port: 22
+        uploads: |
+          ./ => /rpi-imager/
+        ignore: |
+          !rpi-imager-octoklipperpi.json
